@@ -52,28 +52,28 @@ class SAMS(nn.Module):
         inter_channels = max(in_channels*radix//reduction_factor, 32)
         self.radix = radix
         self.channels = channels
-        self.relu = nn.ReLU(inplace=True)
-        self.fc1 = nn.Conv2d(channels, inter_channels, 1, groups=1)
-        self.bn1 = norm_layer(inter_channels)
-        self.fc2 = nn.Conv2d(inter_channels, channels*radix, 1, groups=1)
-
+        # self.relu = nn.ReLU(inplace=True)
+        # self.fc1 = nn.Conv2d(channels, inter_channels, 1, groups=1)
+        # self.bn1 = norm_layer(inter_channels)
+        # self.fc2 = nn.Conv2d(inter_channels, channels*radix, 1, groups=1)
+        number_heads =4
+        self.mha = nn.MultiheadAttention(in_channels*radix//reduction_factor, number_heads)
 
     def forward(self, x):
 
         batch, channel = x.shape[:2]
         splited = torch.split(x, channel//self.radix, dim=1)
 
-        gap = sum(splited)
-        gap = F.adaptive_avg_pool2d(gap, 1)
-        gap = self.fc1(gap)
-        gap = self.bn1(gap)
-        gap = self.relu(gap)
+        attended_splits =[]
+        for split in splited:
+            p = F.avg_pool2d(split, split.size()[:2])
+            p = p.view(batch,channel)
+            o, a = self.mha(p, p, p)
+            attended_splits.append(o.view(x.size))
 
-        atten = self.fc2(gap).view((batch, self.radix, self.channels))
-        atten = F.softmax(atten, dim=1).view(batch, -1, 1, 1)
-        atten = torch.split(atten, channel//self.radix, dim=1)
-
-        out= torch.cat([att*split for (att, split) in zip(atten, splited)],1)
+        print('attended_splits shape ', attended_splits.shape)
+        out = torch.cat(attended_splits, dim=1)
+        print('output shape ', out.shape)
         return out.contiguous()
 
 
