@@ -45,35 +45,47 @@ class SAMS(nn.Module):
     multiple parts, obtain the attention map of each part, and the attention map
     for the current pyramid level is constructed by mergiing each attention map.
     """
+
     def __init__(self, in_channels, channels,
                  radix=4, reduction_factor=4,
-                norm_layer=nn.BatchNorm2d):
+                 norm_layer=nn.BatchNorm2d):
         super(SAMS, self).__init__()
-        inter_channels = max(in_channels*radix//reduction_factor, 32)
+
         self.radix = radix
         self.channels = channels
         # self.relu = nn.ReLU(inplace=True)
         # self.fc1 = nn.Conv2d(channels, inter_channels, 1, groups=1)
         # self.bn1 = norm_layer(inter_channels)
         # self.fc2 = nn.Conv2d(inter_channels, channels*radix, 1, groups=1)
-        number_heads =4
-        self.mha = nn.MultiheadAttention(in_channels*radix//reduction_factor, number_heads)
+        number_heads = 2
+        self.mha = nn.MultiheadAttention((in_channels // self.radix), number_heads)
 
     def forward(self, x):
-
+        print('radix ', self.radix)
+        print('x.shape:', x.shape)
         batch, channel = x.shape[:2]
-        splited = torch.split(x, channel//self.radix, dim=1)
+        splited = torch.split(x, channel // self.radix, dim=1)
 
-        attended_splits =[]
+        print('splited 0 shape :', splited[0].shape)
+        attended_splits = []
+
         for split in splited:
-            p = F.avg_pool2d(split, split.size()[:2])
-            p = p.view(batch,channel)
+            p1 = F.avg_pool2d(split, split.size()[2:])
+            print('p1 shape :', p1.shape)
+            b, c, _, _ = p1.size()
+            p = p1.view(b, c)
+            print('p shape ', p.shape)
             o, a = self.mha(p, p, p)
-            attended_splits.append(o.view(x.size))
+            print('o shape :', o.shape)
 
-        print('attended_splits shape ', attended_splits.shape)
-        out = torch.cat(attended_splits, dim=1)
-        print('output shape ', out.shape)
+            attended_splits.append(o)
+
+        print('attended_splits shape ', attended_splits[0].shape)
+        cat_var = torch.cat(attended_splits, dim=1)
+        print('output shape ', cat_var.shape)
+
+        out = cat_var.unsqueeze(-1).unsqueeze(-1) * x
+        print(out.shape)
         return out.contiguous()
 
 
