@@ -59,6 +59,7 @@ class SAMS(nn.Module):
 
 
     def forward(self, x):
+        print('SAMS shape', x.shape)
 
         batch, channel = x.shape[:2]
         splited = torch.split(x, channel//self.radix, dim=1)
@@ -74,6 +75,8 @@ class SAMS(nn.Module):
         atten = torch.split(atten, channel//self.radix, dim=1)
 
         out= torch.cat([att*split for (att, split) in zip(atten, splited)],1)
+        print('out shape', out.shape)
+
         return out.contiguous()
 
 
