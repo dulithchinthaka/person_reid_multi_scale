@@ -37,6 +37,31 @@ def weights_init_classifier(m):
         if m.bias:
             nn.init.constant_(m.bias, 0.0)
 
+class ECA(nn.Module):
+    """Constructs a ECA module.
+
+    Args:
+        channel: Number of channels of the input feature map
+        k_size: Adaptive selection of kernel size
+    """
+    def __init__(self, channel, k_size=3):
+        super(eca_layer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        # feature descriptor on the global spatial information
+        y = self.avg_pool(x)
+
+        # Two different branches of ECA module
+        y = self.conv(y.squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1)
+
+        # Multi-scale information fusion
+        y = self.sigmoid(y)
+
+        return x * y.expand_as(x)
+
 
 class SAMS(nn.Module):
     """
@@ -128,11 +153,11 @@ class Baseline(nn.Module):
 
 
         if self.level > 0:
-            self.att1 = SELayer(64,8)
-            self.att2 = SELayer(256,32)
-            self.att3 = SELayer(512,64)
-            self.att4 = SELayer(1024,128)
-            self.att5 = SELayer(2048,256)
+            self.att1 = ECA(64)
+            self.att2 = ECA(256)
+            self.att3 = ECA(512)
+            self.att4 = ECA(1024)
+            self.att5 = ECA(2048)
             if self.level > 1: # second pyramid level
                 self.att_s1=SAMS(64,int(64/self.level),radix=self.level)
                 self.att_s2=SAMS(256,int(256/self.level),radix=self.level)
