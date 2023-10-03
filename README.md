@@ -1,15 +1,18 @@
-# Person Re-identification via Attention Pyramid (APNet)
-The official PyTorch code implementation for TIP20' Submission: "Person Re-identification via Attention Pyramid"
+# Multi-Scale Efficient Attention Net
 
-This repo only contains channel-wise attention(SE-Layer) implementation, to reproduce the result of spatial attention in our paper, please refer to [RGA-S](https://github.com/microsoft/Relation-Aware-Global-Attention-Networks) by Microsoft and simply change the attention agent. We also want to thank FastReid which is the codebase of our implementation.
+The official PyTorch code implementation for ICITR 2023 submission: "Multi-Scale Efficient Attention Net"
+
+This implementation is based on open-reid and APNet (https://github.com/CHENGY12/APNet).
+
 
 ## Introduction
-Recently, attention mechanism has been widely used in the ReID system to facilitate high-performance identification and demonstrates the powerful representation ability by discovering discriminative regions and mitigating the misalignment. However, detecting the salient regions with the attention model is confronted with the dilemma to jointly capture both coarse and fine-grained clues, since the focus varies as the image scale changes. To address the above issue, we propose an effective attention pyramid networks (APNet) to jointly learn the attentions under different scales. Our attention pyramid imitates the process of human vi- sual perception which tends to notice the foreground person over the cluttered background, and further focus on the specific color of the shirt with a close observation. Please see the Figure1 below and our paper for the method detail.
+The goal of the person re-identification is to retrieve the specific person across different camera views and times, which has been widely applied in many applications, such as suspect tracking, video surveillance, intelligent security, smart city, and so on. With the advancement of deep learning and machine learning, person re-identification has rapidly growth in recent years. Despite the advancements made in recent times, person re-identification is still a challenging problem due to large intra-class variance caused by occlusions or cluttered backgrounds and pose variations.
+In recent times, numerous research endeavors have turned to attention-based designs to tackle the mentioned challenges in person re-identification. This approach aims to enhance the discriminative features while mitigating interferenceMost of  These methods learn to explore salient regions in the global image, which can be formulated as a salient detection task. However, detecting the salient regions with the attention model is confronted as a challenging problem to jointly capture both coarse and fine-grained clues since the focus varies as the image scale changes. There exist minimal works that jointly learn the attentions under different scales. Also, these models are demanding high computational resources, making it difficult to use in real-world applications. To tackle this issue, in this paper, we introduce a lightweight model named Multi-Scaled Efficient Attention Net (MSEA Net) while preserving accuracy.
 
-We validate our method in Market1501, DukeMTMC and MSMT17 datasets, and our method shows a superior performance on all the datasets. Please check the Result section for the detaied quantity and quality result.
+We validate our method in Market1501 dataset
+
 
 ![image](https://github.com/CHENGY12/APNet/blob/main/images/github_main_graph.png)
-Figure 1: The architecture of Attention Pyramid Networks (APNet). Our APNet adopts the “split-attend-merge-stack” principle, which first splits the feature maps into multiple parts, obtains the attention map of each part, and the attention map for current pyramid level is constructed by merging each attention map. Then in deeper pyramid level, we split the features into more fine-grained parts and learn the fine-grained attention guiding by coarse attentions. Finally, attentions with different granularities are stacked as attention pyramid and applies to original input feature by element-wise product.
 
 
 ## Requirements
@@ -69,12 +72,3 @@ sh train.sh
 sh test.sh
 ```
 
-## Result
-|    Dataset     | Top-1 |  mAP  |
-| :------------: | :---: | :---: |
-|  Market-1501   | 96.2 | 90.5 |
-| DukeMTMC-Re-ID | 90.4 | 81.5 |
-|     MSMT17     | 83.7 | 63.5 |
-
-![image](https://github.com/CHENGY12/APNet/blob/main/images/github_vis.png)
-Figure 2: Visualizations of the attention maps with different pyramid level. We adopt the Grad-CAM to visualize the learned attention maps of our attention pyramid. For each sample, from left to right, we show the input image, attention of first level pyramid, attention of second level pyramid. We can observe that attentions in different pyramid levels capture the salient clues of different scales.
