@@ -12,8 +12,10 @@ In recent times, numerous research endeavors have turned to attention-based desi
 We validate our method in Market1501 dataset
 
 
-![image](https://github.com/CHENGY12/APNet/blob/main/images/github_main_graph.png)
+![image]https://github.com/dulithchinthaka/person_reid_multi_scale/blob/main/images/Slide1.PNG
 
+![image]
+https://github.com/dulithchinthaka/person_reid_multi_scale/blob/main/images/pipeline.png
 
 ## Requirements
 - Python 3.6+
