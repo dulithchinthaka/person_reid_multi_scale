@@ -61,31 +61,30 @@ class SAMS(nn.Module):
         self.mha = nn.MultiheadAttention((in_channels // self.radix), number_heads)
 
     def forward(self, x):
-        print('radix ', self.radix)
-        print('x.shape:', x.shape)
+
         batch, channel = x.shape[:2]
         splited = torch.split(x, channel // self.radix, dim=1)
 
-        print('splited 0 shape :', splited[0].shape)
+
         attended_splits = []
 
         for split in splited:
             p1 = F.avg_pool2d(split, split.size()[2:])
-            print('p1 shape :', p1.shape)
+
             b, c, _, _ = p1.size()
             p = p1.view(b, c)
-            print('p shape ', p.shape)
+
             o, a = self.mha(p, p, p)
-            print('o shape :', o.shape)
+
 
             attended_splits.append(o)
 
-        print('attended_splits shape ', attended_splits[0].shape)
+
         cat_var = torch.cat(attended_splits, dim=1)
-        print('output shape ', cat_var.shape)
+
 
         out = cat_var.unsqueeze(-1).unsqueeze(-1) * x
-        print(out.shape)
+
         return out.contiguous()
 
 

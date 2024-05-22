@@ -64,5 +64,9 @@ def main():
     inference(cfg, model, val_loader, num_query)
 
 
+
+from torchvision.models import resnet50
+
 if __name__ == '__main__':
+    # resnet50(pretrained=True)
     main()
