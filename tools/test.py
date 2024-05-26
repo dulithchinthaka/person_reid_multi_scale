@@ -1,9 +1,10 @@
 
 import argparse
+import io
 import os
 import sys
 from os import mkdir
-
+from torchsummary import summary
 import torch
 from torch import nn
 from torch.backends import cudnn
@@ -15,6 +16,16 @@ from engine.inference import inference
 from modeling import build_model
 from utils.logger import setup_logger
 
+
+def log_model_summary(model, input_size):
+    # Redirect stdout to capture the summary
+    buffer = io.StringIO()
+    sys.stdout = buffer
+    summary(model, input_size)
+    sys.stdout = sys.__stdout__
+    summary_str = buffer.getvalue()
+    buffer.close()
+    return summary_str
 
 def main():
     parser = argparse.ArgumentParser(description="ReID Baseline Inference")
@@ -63,6 +74,8 @@ def main():
 
     inference(cfg, model, val_loader, num_query)
 
+    model_summary_str = log_model_summary(model.module, (3, 384, 192))
+    logger.info(f"Model architecture summary:\n{model_summary_str}")
 
 if __name__ == '__main__':
     main()

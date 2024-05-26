@@ -6,6 +6,7 @@
 
 import logging
 import pdb
+from datetime import datetime
 
 import torch
 import torch.nn.functional as F
@@ -14,6 +15,10 @@ from ignite.handlers import ModelCheckpoint, Timer
 from ignite.metrics import RunningAverage
 
 from utils.reid_metric import R1_mAP
+
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 def create_supervised_trainer(model, optimizer, loss_fn,
@@ -116,8 +121,17 @@ def do_train(
     device = cfg.MODEL.DEVICE
     epochs = cfg.SOLVER.MAX_EPOCHS
 
+    # Set up logging
+
     logger = logging.getLogger("reid_baseline.train")
+
+    # Print the number of parameters
+    num_params = count_parameters(model.module)
+    logger.info(f"Start training. Number of model parameters: {num_params}")
+
     logger.info("Start training")
+
+
 
     trainer = create_supervised_trainer(model, optimizer, loss_fn, device=device)
     evaluator = create_supervised_evaluator(model, metrics={'r1_mAP': R1_mAP(num_query)}, device=device)

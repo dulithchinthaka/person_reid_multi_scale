@@ -39,8 +39,25 @@ def train(cfg):
     # prepare model
     model = build_model(cfg, num_classes)
     if cfg.SOLVER.FINETUNE:
-        model.load_state_dict(torch.load(cfg.TEST.WEIGHT).module.state_dict())
+        # model.load_state_dict(torch.load(cfg.TEST.WEIGHT).module.state_dict())
+
+        # Load the model checkpoint
+        checkpoint = torch.load(cfg.TEST.WEIGHT)
+        if 'model' in checkpoint:
+            # If the checkpoint was saved with the model wrapped inside another key named 'model'
+            model.load_state_dict(checkpoint['model'])
+        elif 'state_dict' in checkpoint:
+            # If the checkpoint was saved with the model's state dictionary directly under the key 'state_dict'
+            model.load_state_dict(checkpoint['state_dict'])
+        else:
+            # If the checkpoint structure is different, you may need to adapt this part accordingly
+            raise ValueError("Unsupported checkpoint format. Please check the structure.")
+
     model = nn.DataParallel(model)
+
+    # Count the number of parameters
+
+
 
 
     optimizer = make_optimizer(cfg, model)
